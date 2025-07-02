@@ -10,6 +10,9 @@ import {
   DocumentChartBarIcon,
   CogIcon,
   XMarkIcon,
+  ChevronDoubleLeftIcon,
+  ChevronDoubleRightIcon,
+  Bars3Icon,
 } from '@heroicons/react/24/outline';
 
 const navigation = [
@@ -28,9 +31,11 @@ function classNames(...classes: string[]) {
 interface SidebarProps {
   open: boolean;
   setOpen: (open: boolean) => void;
+  collapsed: boolean;
+  setCollapsed: (collapsed: boolean) => void;
 }
 
-export default function Sidebar({ open, setOpen }: SidebarProps) {
+export default function Sidebar({ open, setOpen, collapsed, setCollapsed }: SidebarProps) {
   const location = useLocation();
 
   return (
@@ -82,9 +87,9 @@ export default function Sidebar({ open, setOpen }: SidebarProps) {
                     <h2 className="text-xl font-bold text-gray-900">Shifts Tracker</h2>
                   </div>
                   <nav className="flex flex-1 flex-col">
-                    <ul role="list" className="flex flex-1 flex-col gap-y-7">
+                    <ul className="flex flex-1 flex-col gap-y-7">
                       <li>
-                        <ul role="list" className="-mx-2 space-y-1">
+                        <ul className="-mx-2 space-y-1">
                           {navigation.map((item) => (
                             <li key={item.name}>
                               <Link
@@ -122,15 +127,37 @@ export default function Sidebar({ open, setOpen }: SidebarProps) {
       </Transition.Root>
 
       {/* Desktop sidebar */}
-      <div className="hidden md:fixed md:inset-y-0 md:z-50 md:flex md:w-72 md:flex-col">
+      <div className={classNames(
+        "hidden md:fixed md:inset-y-0 md:z-50 md:flex md:flex-col transition-all duration-300 ease-in-out",
+        collapsed ? "md:w-16" : "md:w-72"
+      )}>
         <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6">
-          <div className="flex h-16 shrink-0 items-center">
-            <h2 className="text-xl font-bold text-gray-900">Shifts Tracker</h2>
+          <div className="flex h-16 shrink-0 items-center justify-between">
+            {!collapsed && (
+              <h2 className="text-xl font-bold text-gray-900">Shifts Tracker</h2>
+            )}
+            <button
+              type="button"
+              className={classNames(
+                "p-1.5 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500",
+                collapsed ? "mx-auto" : ""
+              )}
+              onClick={() => setCollapsed(!collapsed)}
+            >
+              <span className="sr-only">
+                {collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              </span>
+              {collapsed ? (
+                <ChevronDoubleRightIcon className="h-5 w-5" aria-hidden="true" />
+              ) : (
+                <ChevronDoubleLeftIcon className="h-5 w-5" aria-hidden="true" />
+              )}
+            </button>
           </div>
           <nav className="flex flex-1 flex-col">
-            <ul role="list" className="flex flex-1 flex-col gap-y-7">
+            <ul className="flex flex-1 flex-col gap-y-7">
               <li>
-                <ul role="list" className="-mx-2 space-y-1">
+                <ul className="-mx-2 space-y-1">
                   {navigation.map((item) => (
                     <li key={item.name}>
                       <Link
@@ -139,8 +166,10 @@ export default function Sidebar({ open, setOpen }: SidebarProps) {
                           location.pathname === item.href
                             ? 'bg-blue-50 text-blue-700'
                             : 'text-gray-700 hover:text-blue-700 hover:bg-blue-50',
-                          'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
+                          'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold',
+                          collapsed ? 'justify-center' : ''
                         )}
+                        title={collapsed ? item.name : ''}
                       >
                         <item.icon
                           className={classNames(
@@ -151,7 +180,7 @@ export default function Sidebar({ open, setOpen }: SidebarProps) {
                           )}
                           aria-hidden="true"
                         />
-                        {item.name}
+                        {!collapsed && item.name}
                       </Link>
                     </li>
                   ))}

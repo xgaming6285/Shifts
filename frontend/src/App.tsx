@@ -10,14 +10,22 @@ import Settings from './components/Settings';
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
     <Router>
       <div className="flex h-screen bg-gray-100">
-        <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} />
+        <Sidebar 
+          open={sidebarOpen} 
+          setOpen={setSidebarOpen}
+          collapsed={sidebarCollapsed}
+          setCollapsed={setSidebarCollapsed}
+        />
         
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <header className="bg-white shadow-sm border-b border-gray-200">
+        <div className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out ${
+          sidebarCollapsed ? 'md:ml-16' : 'md:ml-72'
+        }`}>
+          <header className="bg-white shadow-sm border-r border-gray-200">
             <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">

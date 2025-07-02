@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 from datetime import datetime, date
 from app.database import get_db
@@ -18,7 +18,7 @@ def get_shifts(
     db: Session = Depends(get_db)
 ):
     """Get shifts with optional filtering"""
-    query = db.query(models.Shift)
+    query = db.query(models.Shift).options(joinedload(models.Shift.worker))
     
     if worker_id:
         query = query.filter(models.Shift.worker_id == worker_id)
@@ -38,7 +38,7 @@ def get_shifts(
 @router.get("/{shift_id}", response_model=schemas.Shift)
 def get_shift(shift_id: int, db: Session = Depends(get_db)):
     """Get a specific shift by ID"""
-    shift = db.query(models.Shift).filter(models.Shift.id == shift_id).first()
+    shift = db.query(models.Shift).options(joinedload(models.Shift.worker)).filter(models.Shift.id == shift_id).first()
     if not shift:
         raise HTTPException(status_code=404, detail="Shift not found")
     return shift
@@ -68,7 +68,10 @@ def create_shift(shift: schemas.ShiftCreate, db: Session = Depends(get_db)):
     db.add(db_shift)
     db.commit()
     db.refresh(db_shift)
-    return db_shift
+    
+    # Reload with worker information
+    shift_with_worker = db.query(models.Shift).options(joinedload(models.Shift.worker)).filter(models.Shift.id == db_shift.id).first()
+    return shift_with_worker
 
 @router.put("/{shift_id}", response_model=schemas.Shift)
 def update_shift(shift_id: int, shift_update: schemas.ShiftUpdate, db: Session = Depends(get_db)):
@@ -83,7 +86,10 @@ def update_shift(shift_id: int, shift_update: schemas.ShiftUpdate, db: Session =
     
     db.commit()
     db.refresh(shift)
-    return shift
+    
+    # Reload with worker information
+    shift_with_worker = db.query(models.Shift).options(joinedload(models.Shift.worker)).filter(models.Shift.id == shift_id).first()
+    return shift_with_worker
 
 @router.delete("/{shift_id}")
 def delete_shift(shift_id: int, db: Session = Depends(get_db)):
@@ -100,7 +106,7 @@ def delete_shift(shift_id: int, db: Session = Depends(get_db)):
 def get_today_shifts(db: Session = Depends(get_db)):
     """Get all shifts for today"""
     today = date.today()
-    shifts = db.query(models.Shift).filter(
+    shifts = db.query(models.Shift).options(joinedload(models.Shift.worker)).filter(
         models.Shift.date == today
     ).all()
     return shifts
@@ -113,7 +119,7 @@ def get_worker_upcoming_shifts(worker_id: int, limit: int = 10, db: Session = De
         raise HTTPException(status_code=404, detail="Worker not found")
     
     today = date.today()
-    shifts = db.query(models.Shift).filter(
+    shifts = db.query(models.Shift).options(joinedload(models.Shift.worker)).filter(
         models.Shift.worker_id == worker_id,
         models.Shift.date >= today,
         models.Shift.status == "scheduled"
