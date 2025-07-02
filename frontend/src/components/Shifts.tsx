@@ -67,6 +67,13 @@ export default function Shifts() {
     fetchWorkers();
   }, [filters]);
 
+  // Ensure form is properly reset when modal opens for new shift
+  useEffect(() => {
+    if (showAddModal && !editingShift) {
+      resetForm();
+    }
+  }, [showAddModal, editingShift]);
+
   const fetchShifts = async () => {
     try {
       setLoading(true);
@@ -155,6 +162,14 @@ export default function Shifts() {
     });
   };
 
+  const handleAddShift = () => {
+    setEditingShift(null);
+    resetForm();
+    setTimeout(() => {
+      setShowAddModal(true);
+    }, 0);
+  };
+
   const filteredShifts = shifts.filter(shift => {
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
@@ -223,11 +238,7 @@ export default function Shifts() {
           </p>
         </div>
         <button
-          onClick={() => {
-            resetForm();
-            setEditingShift(null);
-            setShowAddModal(true);
-          }}
+          onClick={handleAddShift}
           className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         >
           <PlusIcon className="h-4 w-4 mr-2" />
@@ -392,10 +403,7 @@ export default function Shifts() {
               <h3 className="text-lg font-medium text-gray-900 mb-2">No shifts found</h3>
               <p className="text-gray-500 mb-4">Get started by creating your first shift.</p>
               <button
-                onClick={() => {
-                  resetForm();
-                  setShowAddModal(true);
-                }}
+                onClick={handleAddShift}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-600 bg-blue-100 hover:bg-blue-200"
               >
                 <PlusIcon className="h-4 w-4 mr-2" />
@@ -493,7 +501,12 @@ export default function Shifts() {
               <h3 className="text-lg font-medium text-gray-900 mb-4">
                 {editingShift ? 'Edit Shift' : 'Add New Shift'}
               </h3>
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form 
+                onSubmit={handleSubmit} 
+                className="space-y-4" 
+                autoComplete="off"
+                key={editingShift ? editingShift.id : 'new-shift'}
+              >
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Worker
@@ -502,6 +515,7 @@ export default function Shifts() {
                     value={formData.worker_id}
                     onChange={(e) => setFormData({ ...formData, worker_id: e.target.value })}
                     required
+                    autoComplete="off"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">Select Worker</option>
@@ -522,6 +536,7 @@ export default function Shifts() {
                     value={formData.date}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                     required
+                    autoComplete="off"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
@@ -536,6 +551,7 @@ export default function Shifts() {
                       value={formData.start_time}
                       onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
                       required
+                      autoComplete="off"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
@@ -548,6 +564,7 @@ export default function Shifts() {
                       value={formData.end_time}
                       onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
                       required
+                      autoComplete="off"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
